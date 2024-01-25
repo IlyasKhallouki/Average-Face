@@ -7,7 +7,7 @@ dlib_facelandmark = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat"
 
 # Path to the folder containing images
 folder_path = "pics"
-output_path, output_number = "output", 0
+output_path = "output"
 
 # Get a list of all image files in the folder
 image_files = [f for f in os.listdir(folder_path) if f.endswith(('.jpg', '.jpeg', '.png'))]
@@ -26,9 +26,6 @@ for image_file in image_files:
     # Detect faces in the image
     faces = hog_face_detector(gray)
 
-    # List to store facial landmarks for each face in the image
-    all_landmarks = []
-
     for face in faces:
         face_landmarks = dlib_facelandmark(gray, face)
 
@@ -40,14 +37,3 @@ for image_file in image_files:
             y = face_landmarks.part(n).y
             landmarks_for_face.append((x, y))
 
-        # Append the landmarks for the current face to the list
-        all_landmarks.append(landmarks_for_face)
-
-    # Visualize landmarks on the image (optional)
-    for landmarks_for_face in all_landmarks:
-        for (x, y) in landmarks_for_face:
-            cv2.circle(frame, (x, y), 1, (0, 255, 255), 1)
-
-    # Display the image with landmarks (optional)
-    cv2.imwrite(f'{output_path}/{output_number}.png', frame)
-    output_number+=1
