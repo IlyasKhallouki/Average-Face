@@ -9,6 +9,9 @@ dlib_facelandmark = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat"
 folder_path = "pics"
 output_path = "output"
 
+# List where landmarks of all images will be stored
+all_landmarks = []
+
 # Get a list of all image files in the folder
 image_files = [f for f in os.listdir(folder_path) if f.endswith(('.jpg', '.jpeg', '.png'))]
 
@@ -36,4 +39,6 @@ for image_file in image_files:
             x = face_landmarks.part(n).x
             y = face_landmarks.part(n).y
             landmarks_for_face.append((x, y))
+
+        all_landmarks.append(landmarks_for_face)
 
