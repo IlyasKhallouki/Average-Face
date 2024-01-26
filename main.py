@@ -2,6 +2,7 @@ import cv2
 import dlib
 import os
 import numpy as np
+from scipy.spatial import Delaunay
 
 hog_face_detector = dlib.get_frontal_face_detector()
 dlib_facelandmark = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
@@ -72,6 +73,11 @@ def get_landmarks(frame):
     return landmarks
 
 all_landmarks = []
+target_size=(800, 800)
+
+boundary_points = np.array([(0, 0), (0, target_size[1] - 1), (target_size[0] - 1, 0), (target_size[0] - 1, target_size[1] - 1),
+                            (target_size[0] // 2, 0), (target_size[0] // 2, target_size[1] - 1),
+                            (0, target_size[1] // 2), (target_size[0] - 1, target_size[1] // 2)], dtype=np.int32)
 
 image_files = [f for f in os.listdir(folder_path) if f.endswith(('.jpg', '.jpeg', '.png'))]
 
@@ -82,11 +88,13 @@ for image_file in image_files:
     if frame is None:
         print(f"Unable to read image: {image_path}")
         continue
-    
+
     image_landmarks = get_landmarks(frame)
 
-    cropped_frame = crop_and_resize(frame, image_landmarks[0], image_file)
+    cropped_frame = crop_and_resize(frame, np.array(image_landmarks[0]), image_file)
 
     all_landmarks.extend(get_landmarks(cropped_frame))
 
 average_landmarks = np.mean(np.array(all_landmarks), axis=0)
+
+all_points = np.vstack((average_landmarks, boundary_points))
