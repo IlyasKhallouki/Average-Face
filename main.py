@@ -9,7 +9,6 @@ dlib_facelandmark = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat"
 folder_path = "pics"
 output_path = "output"
 
-# List where landmarks of all images will be stored
 all_landmarks = []
 
 # Get a list of all image files in the folder
@@ -35,10 +34,24 @@ for image_file in image_files:
         # List to store landmarks for each face
         landmarks_for_face = []
 
-        for n in range(0, 68):
+        for n in range(68):
             x = face_landmarks.part(n).x
             y = face_landmarks.part(n).y
             landmarks_for_face.append((x, y))
 
         all_landmarks.append(landmarks_for_face)
 
+average_landmarks = []
+
+#Find average landmarks
+for i in range(68):
+    x, y = 0, 0
+    for j in all_landmarks:
+        x+=j[i][0]
+        y+=j[i][1]
+    x//=len(all_landmarks)
+    y//=len(all_landmarks)
+
+    average_landmarks.append((x, y))
+
+print(average_landmarks)
