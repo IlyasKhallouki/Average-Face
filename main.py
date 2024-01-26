@@ -1,6 +1,7 @@
 import cv2
 import dlib
 import os
+import numpy as np
 
 hog_face_detector = dlib.get_frontal_face_detector()
 dlib_facelandmark = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
@@ -49,8 +50,8 @@ for i in range(68):
     for j in all_landmarks:
         x+=j[i][0]
         y+=j[i][1]
-    x//=len(all_landmarks)
-    y//=len(all_landmarks)
+    x/=len(all_landmarks)
+    y/=len(all_landmarks)
 
     average_landmarks.append((x, y))
 
