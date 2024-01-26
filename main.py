@@ -98,3 +98,5 @@ for image_file in image_files:
 average_landmarks = np.mean(np.array(all_landmarks), axis=0)
 
 all_points = np.vstack((average_landmarks, boundary_points))
+
+triangles = Delaunay(all_points)
