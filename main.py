@@ -9,40 +9,60 @@ dlib_facelandmark = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat"
 folder_path = "pics"
 output_path = "output"
 
-def crop_and_resize(image, landmarks, image_name, target_size=(800, 800), left_eye=(180, 200), right_eye=(420, 200)):
+def crop_and_resize(image, landmarks, image_name, target_size=(800, 800)):
     landmarks = np.array(landmarks)
 
-    eyes_center = np.mean(landmarks[36:48], axis=0)
+    left_eye = landmarks[36:42].mean(axis=0)
+    right_eye = landmarks[42:48].mean(axis=0)
 
-    left_eye = np.array(left_eye)
-    right_eye = np.array(right_eye)
+    eyes_center = np.mean([left_eye, right_eye], axis=0).astype('int')
 
-    angle = np.degrees(np.arctan2(right_eye[1] - left_eye[1], right_eye[0] - left_eye[0]))
-    eye_distance = np.linalg.norm(right_eye - left_eye)
-    landmarks_distance = np.linalg.norm(landmarks[45] - landmarks[36])
-    scale_factor = eye_distance / landmarks_distance if landmarks_distance != 0 else 1.0
-    rotation_matrix = cv2.getRotationMatrix2D(tuple(eyes_center), angle, scale_factor)
+    delta_x = right_eye[0] - left_eye[0]
+    delta_y = right_eye[1] - left_eye[1]
+    angle = np.degrees(np.arctan2(delta_y, delta_x))
 
-    cropped_image = cv2.warpAffine(image, rotation_matrix, (image.shape[1], image.shape[0]))
+    desired_face_width = target_size[0] * 0.25
+    current_eye_dist = np.linalg.norm(right_eye - left_eye)
+    scale_factor = desired_face_width / current_eye_dist
 
-    translation = (left_eye[0] - eyes_center[0], left_eye[1] - eyes_center[1])
+    eyes_center = tuple(map(float, eyes_center))
 
-    cropped_image = cv2.warpAffine(cropped_image, np.float32([[1, 0, translation[0]], [0, 1, translation[1]]]), (image.shape[1], image.shape[0]))
+    rotation_matrix = cv2.getRotationMatrix2D(eyes_center, angle, scale_factor)
 
-    x1 = max(int(right_eye[0] - target_size[0]), 0)
-    x2 = min(int(right_eye[0]), image.shape[1])
-    y1 = max(int(right_eye[1] - target_size[1] / 2), 0)
-    y2 = min(int(right_eye[1] + target_size[1] / 2), image.shape[0])
+    rotated_and_scaled_image = cv2.warpAffine(image, rotation_matrix, (image.shape[1], image.shape[0]))
 
-    if x1 >= x2 or y1 >= y2:
-        print(f"Invalid cropping coordinates for image {image_name}")
-        return
+    new_eyes_center = np.matmul(rotation_matrix, np.array([eyes_center[0], eyes_center[1], 1]))
+
+    translation_matrix = np.float32([[1, 0, target_size[0] / 2 - new_eyes_center[0]], 
+                                     [0, 1, target_size[1] / 2 - new_eyes_center[1]]])
+    translated_image = cv2.warpAffine(rotated_and_scaled_image, translation_matrix, target_size)
+
+    output_file_path = os.path.join(output_path, image_name)
+    cv2.imwrite(output_file_path, translated_image)
     
-    cropped_image = cropped_image[y1:y2, x1:x2]
-    print("Cropped image dimensions:", cropped_image.shape)
+    print(f"Cropped image saved to {output_file_path}")
+    return translated_image
 
-    local_output_path = os.path.join(output_path, image_name)
-    cv2.imwrite(local_output_path, cropped_image)
+def get_landmarks(frame):
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+    faces = hog_face_detector(gray)
+
+    landmarks = []
+
+    for face in faces:
+        face_landmarks = dlib_facelandmark(gray, face)
+
+        landmarks_for_face = []
+
+        for n in range(68):
+            x = face_landmarks.part(n).x
+            y = face_landmarks.part(n).y
+            landmarks_for_face.append((x, y))
+        
+        landmarks.append(landmarks_for_face)
+
+    return landmarks
 
 all_landmarks = []
 
@@ -55,23 +75,12 @@ for image_file in image_files:
     if frame is None:
         print(f"Unable to read image: {image_path}")
         continue
+    
+    image_landmarks = get_landmarks(frame)
 
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    cropped_frame = crop_and_resize(frame, np.array(image_landmarks[0]), image_file)
 
-    faces = hog_face_detector(gray)
-
-    for face in faces:
-        face_landmarks = dlib_facelandmark(gray, face)
-
-        landmarks_for_face = []
-
-        for n in range(68):
-            x = face_landmarks.part(n).x
-            y = face_landmarks.part(n).y
-            landmarks_for_face.append((x, y))
-
-        all_landmarks.append(landmarks_for_face)
-        crop_and_resize(frame, landmarks_for_face, image_file)
+    all_landmarks.extend(get_landmarks(cropped_frame))
 
 average_landmarks = np.mean(np.array(all_landmarks), axis=0)
 print(average_landmarks)
