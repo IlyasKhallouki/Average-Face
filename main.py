@@ -29,7 +29,7 @@ def crop_and_resize(image, landmarks, image_name, target_size=(800, 800), left_e
 
     cropped_image = cv2.warpAffine(cropped_image, np.float32([[1, 0, translation[0]], [0, 1, translation[1]]]), (image.shape[1], image.shape[0]))
 
-    x1 = max(int(right_eye[0]), 0)
+    x1 = max(int(right_eye[0] - target_size[0]), 0)
     x2 = min(int(right_eye[0]), image.shape[1])
     y1 = max(int(right_eye[1] - target_size[1] / 2), 0)
     y2 = min(int(right_eye[1] + target_size[1] / 2), image.shape[0])
@@ -72,3 +72,6 @@ for image_file in image_files:
 
         all_landmarks.append(landmarks_for_face)
         crop_and_resize(frame, landmarks_for_face, image_file)
+
+average_landmarks = np.mean(np.array(all_landmarks), axis=0)
+print(average_landmarks)
