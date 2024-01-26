@@ -45,7 +45,7 @@ def crop_and_resize(image, landmarks, image_name, target_size=(800, 800), border
         translated_image = translated_image[y:y+h, x:x+w]
 
     output_file_path = os.path.join(output_path, image_name)
-    cv2.imwrite(output_file_path, translated_image)
+    cv2.imwrite(output_file_path, translated_image[:, 50:-49])
     
     print(f"Cropped image saved to {output_file_path}")
     return translated_image
@@ -90,4 +90,3 @@ for image_file in image_files:
     all_landmarks.extend(get_landmarks(cropped_frame))
 
 average_landmarks = np.mean(np.array(all_landmarks), axis=0)
-print(average_landmarks)
