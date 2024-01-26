@@ -6,14 +6,8 @@ import numpy as np
 hog_face_detector = dlib.get_frontal_face_detector()
 dlib_facelandmark = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
 
-# Path to the folder containing images
 folder_path = "pics"
 output_path = "output"
-
-all_landmarks = []
-
-# Get a list of all image files in the folder
-image_files = [f for f in os.listdir(folder_path) if f.endswith(('.jpg', '.jpeg', '.png'))]
 
 def crop_and_resize(image, landmarks, image_name, target_size=(800, 800), left_eye=(180, 200), right_eye=(420, 200)):
     landmarks = np.array(landmarks)
@@ -50,6 +44,9 @@ def crop_and_resize(image, landmarks, image_name, target_size=(800, 800), left_e
     local_output_path = os.path.join(output_path, image_name)
     cv2.imwrite(local_output_path, cropped_image)
 
+all_landmarks = []
+
+image_files = [f for f in os.listdir(folder_path) if f.endswith(('.jpg', '.jpeg', '.png'))]
 
 for image_file in image_files:
     image_path = os.path.join(folder_path, image_file)
