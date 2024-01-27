@@ -3,7 +3,6 @@ import dlib
 import os
 import numpy as np
 from scipy.spatial import Delaunay
-import matplotlib.pyplot as plt
 
 hog_face_detector = dlib.get_frontal_face_detector()
 dlib_facelandmark = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
@@ -84,7 +83,7 @@ for image_file in image_files:
 
     local_output_path = os.path.join(output_path, image_file)
     cv2.imwrite(local_output_path, cropped_frame)
-    print(f"Image {image_file} croped and saved")
+    print(f"Image {image_file} cropped and saved")
 
     all_landmarks.extend(get_landmarks(cropped_frame))
 
