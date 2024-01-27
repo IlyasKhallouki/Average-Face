@@ -132,7 +132,6 @@ for image_name in image_output:
 
 min_height = min(img.shape[0] for img in warped_images)
 
-# Resize all images to have the same height
 images_resized = [cv2.resize(img, (int(img.shape[1] * min_height / img.shape[0]), min_height)) for img in warped_images]
 
 average_face = np.mean(images_resized, axis=0)
